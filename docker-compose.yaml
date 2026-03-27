@@ -6,7 +6,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongodb_data:/data/db
+      - mongodb_data:/data/db          # ✅ Volume nomeado → dados persistem
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 5s
@@ -38,7 +38,7 @@ services:
     restart: always
     ports:
       - "6379:6379"
-    # Sem volumes para ser efêmero (cache é zerado se o container cair)
+    # ✅ Sem volumes → Redis efêmero (cache zerado se o container cair)
     networks:
       - escola_network
     healthcheck:
@@ -55,8 +55,11 @@ services:
     environment:
       - MONGODB_URL=mongodb://db:27017/escola
       - DATABASE_NAME=escola
+      - REDIS_URL=redis://redis:6379    # ✅ CORREÇÃO 1: variável que cursos.py já lê
     depends_on:
       db:
+        condition: service_healthy
+      redis:                            # ✅ CORREÇÃO 2: app só sobe após Redis saudável
         condition: service_healthy
     volumes:
       - .:/app
@@ -64,7 +67,7 @@ services:
       - escola_network
 
 volumes:
-  mongodb_data:
+  mongodb_data:                        # ✅ Volume nomeado declarado aqui
 
 networks:
   escola_network:

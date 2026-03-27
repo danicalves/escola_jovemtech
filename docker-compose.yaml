@@ -17,20 +17,36 @@ services:
 
   mongo-express:
     image: mongo-express:latest
-    container_name: mongo_express_container
+    container_name: mongo_express
     restart: always
     ports:
       - "8081:8081"
     environment:
       - ME_CONFIG_MONGODB_SERVER=db
       - ME_CONFIG_MONGODB_PORT=27017
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=dani
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=123
+      - ME_CONFIG_BASICAUTH_USERNAME=Luann
+      - ME_CONFIG_BASICAUTH_PASSWORD=1234
     depends_on:
       db:
         condition: service_healthy
     networks:
       - escola_network
+
+  redis:
+    image: redis:alpine
+    container_name: redis_container
+    restart: always
+    ports:
+      - "6379:6379"
+    # Sem volumes para ser efêmero (cache é zerado se o container cair)
+    networks:
+      - escola_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   app:
     build: .
     container_name: fastapi_app
@@ -53,6 +69,3 @@ volumes:
 networks:
   escola_network:
     driver: bridge
-  
-  
-
